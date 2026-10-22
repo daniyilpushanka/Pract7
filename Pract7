@@ -1,0 +1,78 @@
+import requests
+import matplotlib.pyplot as plt
+
+years = list(range(2015, 2026))
+
+def get(country):
+    url = f"https://api.worldbank.org/v2/country/{country}/indicator/SP.POP.TOTL"
+    data = requests.get(url, params={
+        "date": "2015:2025",
+        "format": "json"
+    }).json()[1]
+
+    values = {int(x["date"]): x["value"] for x in data}
+
+    return [values.get(y) / 1000000 if values.get(y) is not None else float("nan") for y in years]
+
+ua = get("UKR")
+germ = get("DEU")
+
+country = input("Введіть країну (Україна/Німеччина): ").lower()
+
+if country == "україна":
+    data = ua
+    name = "Україна"
+elif country == "німеччина":
+    data = germ
+    name = "Німеччина"
+else:
+    print("Неправильна країна")
+    data = ua
+    name = "Україна"
+
+year = int(input("Введіть рік (2015-2025): "))
+
+# 1. Лінійний графік
+plt.figure()
+
+plt.plot(years, ua, label="Україна")
+plt.plot(years, germ, label="Німеччина")
+
+plt.title("Чисельність населення України та Німеччини")
+plt.xlabel("Рік")
+plt.ylabel("Населення (млн осіб)")
+plt.xticks(years)
+plt.legend()
+plt.grid()
+
+# 2. Стовпчаста діаграма
+plt.figure()
+
+plt.bar(years, data, color="orange")
+
+plt.title("Чисельність населення: " + name)
+plt.xlabel("Рік")
+plt.ylabel("Населення (млн осіб)")
+plt.xticks(years)
+plt.grid()
+
+# 3. Кругова діаграма
+if year in years:
+    i = years.index(year)
+
+    if ua[i] == ua[i] and germ[i] == germ[i]:
+        plt.figure()
+
+        plt.pie(
+            [ua[i], germ[i]],
+            labels=["Україна", "Німеччина"],
+            autopct="%1.1f%%"
+        )
+
+        plt.title("Порівняння населення за " + str(year) + " рік")
+    else:
+        print("За цей рік немає даних")
+else:
+    print("Неправильний рік")
+
+plt.show()
